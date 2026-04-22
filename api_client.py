@@ -1,6 +1,9 @@
+import logging
 import requests  # будем делать HTTP запросы к API для получения данных о курсах валют
 import os  # в данном случае нужен для передачи ключа из .env файла в виде переменной окружения
-from dotenv import load_dotenv  # нужен для загрузки переменных окружения из .env файла
+from dotenv import (
+    load_dotenv,
+)  # достает данные из .env и помещает в перемененые окружения ос
 
 load_dotenv()  # загружаем переменные окружения из .env файла
 
@@ -14,10 +17,13 @@ def check_api_connection():
     try:
         response = requests.get(
             f"{API_BASE_URL}/USD?parammode=2", timeout=5
-        )  # делаем запрос к API для проверки соединения
-        response.raise_for_status()  # если не 200 то вызывает исключение HTTPError
+        )  # делаем запрос к API для проверки соединения, добавляем таймаут чтобы не уйти в бесконечное ожидание
+        response.raise_for_status()  # если код 4хх или 5хх то вызывает исключение HTTPError
         return True  # если запрос успешный, возвращаем True
     except (
         requests.exceptions.RequestException
-    ):  # используем RequestsException для всех ошибок (на случай если нет интернета или API недоступно)
+    ) as e:  # используем RequestsException для всех ошибок (на случай если нет интернета, превышения времени ожидания или API недоступно)
+        logging.error(
+            f"Ошибка при попытке соединения с API: {e}"
+        )  # логируем конкретную ошибку
         return False
